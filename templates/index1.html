@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot (NLP)</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .chat-container { width: 400px; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        .chat-header { background: #007bff; color: white; padding: 15px; text-align: center; font-weight: bold; }
+        .chat-box { height: 350px; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .message { padding: 10px 14px; border-radius: 15px; max-width: 75%; line-height: 1.4; word-wrap: break-word; }
+        .user-message { background: #007bff; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .bot-message { background: #e9ecef; color: #333; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .chat-input-area { display: flex; border-top: 1px solid #ddd; padding: 10px; background: #fff; }
+        .chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; outline: none; }
+        .chat-input-area button { background: #007bff; color: white; border: none; padding: 10px 15px; margin-left: 8px; border-radius: 4px; cursor: pointer; }
+        .chat-input-area button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">AI Chatbot (Python & NLP)</div>
+    <div class="chat-box" id="chatBox">
+        <div class="message bot-message">Hi! How can I help you today?</div>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="userInput" placeholder="Type a message..." autocomplete="off">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    const inputField = document.getElementById("userInput");
+    const chatBox = document.getElementById("chatBox");
+
+    // Allow pressing "Enter" to send message
+    inputField.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+
+    function sendMessage() {
+        const text = inputField.value.trim();
+        if (text === "") return;
+
+        // Append User Message
+        appendMessage(text, "user-message");
+        inputField.value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Send AJAX POST request to Flask backend
+        fetch("/get", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ msg: text })
+        })
+        .then(response => response.json())
+        .then(data => {
+            appendMessage(data.response, "bot-message");
+            chatBox.scrollTop = chatBox.scrollHeight;
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            appendMessage("Error connecting to server.", "bot-message");
+        });
+    }
+
+    function appendMessage(text, className) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${className}`;
+        messageDiv.innerText = text;
+        chatBox.appendChild(messageDiv);
+    }
+</script>
+
+</body>
+</html>
